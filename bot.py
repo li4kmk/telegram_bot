@@ -32,8 +32,27 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     else:
         response_text = "Посмотрите: https://youtu.be/R08G2J59CYQ?si=3bimEXPCzpoD72_x"
 
+    # Добавляем кнопку "Произошли изменения"
+    keyboard = [
+        [InlineKeyboardButton("Произошли изменения", callback_data="restart")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     # Отправляем результат пользователю
-    await query.edit_message_text(text=response_text)
+    await query.edit_message_text(text=response_text, reply_markup=reply_markup)
+
+# Обработчик кнопки "Пройти тест снова"
+async def restart_test(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+
+    # Создаем клавиатуру с вариантами ответов
+    keyboard = [
+        [InlineKeyboardButton(option, callback_data=option)] for option in QUESTION["options"]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    # Отправляем вопрос пользователю
+    await query.edit_message_text(text=QUESTION["question"], reply_markup=reply_markup)
 
 # Основная функция
 def main() -> None:
@@ -42,7 +61,8 @@ def main() -> None:
 
     # Регистрируем обработчики
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(handle_answer))
+    application.add_handler(CallbackQueryHandler(handle_answer, pattern="^(Да|Нет)$"))
+    application.add_handler(CallbackQueryHandler(restart_test, pattern="^restart$"))
 
     # Запускаем бота
     application.run_polling()
