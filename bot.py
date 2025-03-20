@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
 # Токен вашего бота
 TOKEN = '7688880977:AAEieSr0nbdAKYeAgvYS76_pihHBqJCn5z8'
@@ -41,7 +41,7 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     # Отправляем результат пользователю
     await query.edit_message_text(text=response_text, reply_markup=reply_markup)
 
-# Обработчик кнопки "Пройти тест снова"
+# Обработчик кнопки "Произошли изменения"
 async def restart_test(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
 
@@ -54,6 +54,11 @@ async def restart_test(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # Отправляем вопрос пользователю
     await query.edit_message_text(text=QUESTION["question"], reply_markup=reply_markup)
 
+# Обработчик текстовых сообщений
+async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # Отвечаем "И что" на любое текстовое сообщение
+    await update.message.reply_text("И что")
+
 # Основная функция
 def main() -> None:
     # Создаем приложение и передаем ему токен
@@ -63,6 +68,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(handle_answer, pattern="^(Да|Нет)$"))
     application.add_handler(CallbackQueryHandler(restart_test, pattern="^restart$"))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
     # Запускаем бота
     application.run_polling()
